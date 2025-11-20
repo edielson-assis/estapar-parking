@@ -5,8 +5,6 @@ import java.io.Serializable;
 import br.com.estapar.parking.sector.model.Sector;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
@@ -20,7 +18,7 @@ import lombok.Setter;
 @Entity
 public class Spot implements Serializable {
 
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Id 
     private Long spotId;
 
     @ManyToOne(optional = false)

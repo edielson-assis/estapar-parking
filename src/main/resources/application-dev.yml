@@ -18,3 +18,7 @@ spring:
       ddl-auto: update
     show-sql: true
     open-in-view: false
+
+# Garage settings
+garage:
+  url: ${GARAGE_URL:http://localhost:3000/garage}
