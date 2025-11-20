@@ -1,0 +1,20 @@
+# Server settings
+server:
+  port: 8080
+  error:
+    include-stacktrace: never
+
+# Spring datasource settings
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:parking}?useTimezone=true&serverTimezone=UTC
+    username: ${DB_USERNAME:root}
+    password: ${DB_PASSWORD:admin123}
+  
+# Spring JPA settings  
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    open-in-view: false
