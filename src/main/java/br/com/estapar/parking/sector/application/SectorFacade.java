@@ -12,4 +12,10 @@ public interface SectorFacade {
     Sector findSectorByName(String name);
 
     List<String> findAllSector();
+
+    double getOccupancyRate(Sector sector);
+
+    boolean isSectorFull(Sector sector);
+
+    boolean isSectorOpen(Sector sector);
 }

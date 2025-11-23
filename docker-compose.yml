@@ -1,0 +1,50 @@
+version: '3.9'
+services:
+  simulator:
+    image: cfontes0estapar/garage-sim:1.0.0 
+    container_name: garage-simulator
+    network_mode: "service:parking"
+    depends_on:
+      - parking
+  db:
+    image: mysql:8.0.33
+    container_name: parking-db
+    command: mysqld --default-authentication-plugin=mysql_native_password
+    restart: always
+    environment:
+      TZ: America/Sao_Paulo
+      MYSQL_ROOT_PASSWORD: admin123
+      MYSQL_PASSWORD: admin123
+      MYSQL_DATABASE: parking
+      MYSQL_ROOT_HOST: '%'
+      MYSQL_TCP_PORT: 3308
+    ports:
+      - 3308:3308
+    expose:
+      - 3308
+    volumes:
+      - mysql-data:/var/lib/mysql
+    networks:
+      - parking-network
+  parking:
+    image: edielsonassis/parking
+    container_name: parking-api
+    restart: always
+    environment:
+      TZ: America/Sao_Paulo
+      GARAGE.URL: http://localhost:3000/garage
+      SPRING.DATASOURCE.URL: jdbc:mysql://db:3308/parking?useTimezone=true&serverTimezone=UTC
+      SPRING.DATASOURCE.USERNAME: root
+      SPRING.DATASOURCE.PASSWORD: admin123
+    ports:
+      - 3003:3003
+    command: mvn spring-boot:run
+    depends_on:
+      - db
+    networks:
+      - parking-network
+networks:
+  parking-network:
+    driver: bridge
+volumes:
+  mysql-data:

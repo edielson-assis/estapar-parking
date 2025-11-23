@@ -21,7 +21,7 @@ public class Spot implements Serializable {
     @Id 
     private Long spotId;
 
-    @ManyToOne(optional = false)
+    @ManyToOne
     @JoinColumn(name = "sector_id")
     private Sector sector;
 

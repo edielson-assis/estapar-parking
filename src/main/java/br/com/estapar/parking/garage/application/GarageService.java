@@ -1,7 +1,6 @@
 package br.com.estapar.parking.garage.application;
 
 import java.util.HashSet;
-import java.util.Set;
 
 import org.springframework.stereotype.Service;
 
@@ -18,8 +17,8 @@ import lombok.extern.log4j.Log4j2;
 public class GarageService implements GarageFacade {
     
     private final GarageClient client;
-    private final SectorFacade sectorService;
-    private final SpotFacade spotService;
+    private final SectorFacade sectorFacade;
+    private final SpotFacade spotFacade;
 
     @Override
     public void initializeGarage() {
@@ -30,22 +29,22 @@ public class GarageService implements GarageFacade {
     }
 
     private void callPersistSectorIfNotExists(GarageDTO garage) {
-        Set<String> existingSectors = new HashSet<>(sectorService.findAllSector());
+        var existingSectors = new HashSet<>(sectorFacade.findAllSector());
         log.info("Checking existing sectors before persistence...");
         garage.garage().forEach(sectorData -> {
             if (!existingSectors.contains(sectorData.sector())) {
-                sectorService.createSector(sectorData);
+                sectorFacade.createSector(sectorData);
             }
         });
     }
 
     private void callPersistSpotIfNotExists(GarageDTO garage) {
-        Set<Long> existingSpotIds = new HashSet<>(spotService.findAllIds());
+        var existingSpotIds = new HashSet<>(spotFacade.findAllIds());
         log.info("Checking existing spots before persistence...");
         garage.spots().forEach(spotData -> {
             if (!existingSpotIds.contains(spotData.id())) {
-                var sector = sectorService.findSectorByName(spotData.sector());
-                spotService.createSpot(spotData, sector);
+                var sector = sectorFacade.findSectorByName(spotData.sector());
+                spotFacade.createSpot(spotData, sector);
             }
         });
     }

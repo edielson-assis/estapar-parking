@@ -1,11 +1,14 @@
 package br.com.estapar.parking.parking.domain;
 
 import java.io.Serializable;
-import java.time.Instant;
+import java.time.LocalDateTime;
 
+import br.com.estapar.parking.parking.domain.enums.EventType;
 import br.com.estapar.parking.spot.domain.Spot;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -31,14 +34,14 @@ public class Parking implements Serializable {
     @JoinColumn(name = "spot_id")
     private Spot spot;
 
-    @Column(name = "sector", nullable = false)
+    @Column(name = "sector")
     private String sector;
 
     @Column(name = "entry_time", nullable = false)
-    private Instant entryTime;
+    private LocalDateTime entryTime;
 
     @Column(name = "exit_time")
-    private Instant exitTime;
+    private LocalDateTime exitTime;
 
     @Column(name = "base_price_at_entry")
     private Double basePriceAtEntry;
@@ -48,4 +51,8 @@ public class Parking implements Serializable {
 
     @Column(name = "total_price")
     private Double totalPrice;
+
+    @Column(name = "event_type", nullable = false)
+    @Enumerated(EnumType.STRING)
+    private EventType eventType;
 }

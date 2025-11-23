@@ -11,4 +11,12 @@ public interface SpotFacade {
     Spot createSpot(SpotDTO spotDTO, Sector sector);
 
     List<Long> findAllIds();
+
+    long countOccupiedSpotsBySector(Sector sector);
+
+    Spot findByCoordinates(Double lat, Double lng);
+
+    void markOccupied(Spot spot);
+
+    void markAvailable(Spot spot);
 }

@@ -28,4 +28,13 @@ public class Sector implements Serializable {
 
     @Column(name = "max_capacity", nullable = false)
     private Integer maxCapacity;
+
+    @Column(name = "open_hour")
+    private String openHour;
+
+    @Column(name = "close_hour")
+    private String closeHour;
+
+    @Column(name = "duration_limit_minutes")
+    private Integer durationLimitMinutes;
 }

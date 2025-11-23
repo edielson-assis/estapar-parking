@@ -12,6 +12,9 @@ public class SectorMapper {
         sector.setSectorName(sectorDTO.sector());
         sector.setBasePrice(sectorDTO.basePrice());
         sector.setMaxCapacity(sectorDTO.maxCapacity());
+        sector.setOpenHour(sectorDTO.openHour());
+        sector.setCloseHour(sectorDTO.closeHour());
+        sector.setDurationLimitMinutes(sectorDTO.durationLimitMinutes());
         return sector;
     }
 }

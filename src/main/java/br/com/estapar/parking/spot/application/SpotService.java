@@ -31,4 +31,33 @@ public class SpotService implements SpotFacade {
         log.debug("Fetching existing spot IDs from database...");
         return repository.findAllIds();
     }
+
+    @Override
+    public long countOccupiedSpotsBySector(Sector sector) {
+        log.debug("Counting occupied spots in sector '{}'.", sector.getSectorName());
+        return repository.countBySectorAndIsOccupiedTrue(sector);
+    }
+
+    @Override
+    public Spot findByCoordinates(Double lat, Double lng) {
+        log.debug("Searching for spot at coordinates (lat: {}, lng: {}).", lat, lng);
+        return repository.findByLatAndLng(lat, lng).orElseThrow(() -> { 
+            log.error("No spot found at coordinates (lat: {}, lng: {}).", lat, lng);
+            throw new IllegalArgumentException("No spot found at coordinates (lat: " + lat + ", lng: " + lng + ").");
+        });
+    }
+
+    @Override
+    public void markOccupied(Spot spot) {
+        log.info("Marking spot ID {} as occupied.", spot.getSpotId());
+        spot.setIsOccupied(true);
+        repository.save(spot);
+    }
+
+    @Override
+    public void markAvailable(Spot spot) {
+        log.info("Marking spot ID {} as available.", spot.getSpotId());
+        spot.setIsOccupied(false);
+        repository.save(spot);
+    }
 }
