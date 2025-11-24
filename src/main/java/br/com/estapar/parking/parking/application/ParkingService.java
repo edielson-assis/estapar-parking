@@ -4,6 +4,7 @@ import org.springframework.stereotype.Service;
 
 import br.com.estapar.parking.core.exceptions.ValidationException;
 import br.com.estapar.parking.parking.api.dto.event.ParkingEventDTO;
+import br.com.estapar.parking.parking.api.mapper.ParkingMapper;
 import br.com.estapar.parking.parking.domain.Parking;
 import br.com.estapar.parking.parking.domain.enums.EventType;
 import br.com.estapar.parking.parking.infrastructure.ParkingRepository;
@@ -36,10 +37,7 @@ public class ParkingService implements ParkingFacade {
     @Transactional
     private void eventEntry(ParkingEventDTO event) {
         verifyVehicleNotAlreadyEntered(event.licensePlate());
-        var parking = new Parking();
-        parking.setLicensePlate(event.licensePlate());
-        parking.setEntryTime(event.entryTime());
-        parking.setEventType(event.eventType());
+        var parking = ParkingMapper.toEntity(event);
         parkingRepository.save(parking);
         log.info("Registering entry event for license plate: {}", event.licensePlate());
     }
@@ -47,38 +45,27 @@ public class ParkingService implements ParkingFacade {
     @Transactional
     private void eventParked(ParkingEventDTO event) {
         var parking = findActiveParking(event.licensePlate());
-        if (isActiveVehicle(parking, event.eventType())) {
-            throw new ValidationException("Vehicle is already parked.");
-        }
+        isActiveVehicle(parking, event.eventType());
         var spot = spotFacade.findByCoordinates(event.lat(), event.lng());
         var sector = spot.getSector();
-        if (!sectorFacade.isSectorOpen(sector)) {
-            log.error("Sector '{}' is currently closed. Cannot park now.", sector.getSectorName());
-            throw new ValidationException("Sector is closed. Cannot park now.");
-        }
+        isSectorOpen(sector);
         isSectorFull(sector);
-        var dynamicPrice = pricingService.dynamicFactor(sector);
         spotFacade.markOccupied(spot);
-        parking.setSpot(spot);
-        parking.setSector(sector.getSectorName());
-        parking.setEventType(event.eventType());
-        parking.setBasePriceAtEntry(sector.getBasePrice());
-        parking.setDynamicFactor(dynamicPrice);
+        var dynamicFactor = pricingService.dynamicFactor(sector);
+        ParkingMapper.toEntity(parking, event, sector, spot, dynamicFactor);
         parkingRepository.save(parking);
-        log.info("Vehicle with license plate {} parked at spot ID {} in sector '{}'.", event.licensePlate(),
-                spot.getSpotId(), sector.getSectorName());
+        log.info("Vehicle with license plate {} parked at spot ID {} in sector '{}'.", event.licensePlate(), spot.getSpotId(), sector.getSectorName());
     }
 
     @Transactional
     private void eventExit(ParkingEventDTO event) {
         var parking = findActiveParking(event.licensePlate());
-        parking.setExitTime(event.exitTime());
-        parking.setEventType(event.eventType());
-        var total = pricingService.calculatePrice(parking);
-        parking.setTotalPrice(total);
+        ParkingMapper.toEntity(parking, event);
+        var totalPrice = pricingService.calculatePrice(parking);
+        parking.setTotalPrice(totalPrice);
         parkingRepository.save(parking);
         spotFacade.markAvailable(parking.getSpot());
-        log.info("Vehicle with license plate {} exited. Total price: ${}.", event.licensePlate(), total);
+        log.info("Vehicle with license plate {} exited. Total price: ${}.", event.licensePlate(), totalPrice);
     }
 
     private Parking findActiveParking(String licensePlate) {
@@ -103,10 +90,17 @@ public class ParkingService implements ParkingFacade {
         }
     }
 
-    private boolean isActiveVehicle(Parking parking, EventType eventType) {
+    private void isActiveVehicle(Parking parking, EventType eventType) {
         if (parking.getEventType() == eventType) {
-            return true;
+            log.error("Vehicle with license plate {} is already parked.", parking.getLicensePlate());
+            throw new ValidationException("Vehicle is already parked.");
         }
-        return false;
+    }
+
+    private void isSectorOpen(Sector sector) {
+        if (!sectorFacade.isSectorOpen(sector)) {
+            log.error("Sector '{}' is currently closed. Cannot park now.", sector.getSectorName());
+            throw new ValidationException("Sector is closed. Cannot park now.");
+        }
     }
 }
