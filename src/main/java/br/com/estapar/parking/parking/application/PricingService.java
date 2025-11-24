@@ -13,10 +13,11 @@ import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
-public class PricingService {
+public class PricingService implements PricingFacade {
 
     private final SectorService sectorService;
 
+    @Override
     public double calculatePrice(Parking parking) {
         var entry = parking.getEntryTime();
         var exit = parking.getExitTime();
@@ -27,12 +28,13 @@ public class PricingService {
         }
         var price = applyDynamicPricing(sector, sector.getBasePrice());
         return switch (sector.getSectorName()) {
-            case "A"  -> price;
+            case "A"  -> calculateDailyPrice(price, entry, exit);
             case "B" -> calculateHourlyPrice(price, entry, exit);
             default -> throw new ValidationException("Unknown sector: " + sector.getSectorName());
         };
     }
 
+    @Override
     public double dynamicFactor(Sector sector) {
         var occupancy = sectorService.getOccupancyRate(sector);
         if (occupancy < 0.25) return 0.90;
@@ -50,5 +52,12 @@ public class PricingService {
         var hours = Duration.ofMinutes(totalMinutes).toHoursPart() +
                 (Duration.ofMinutes(totalMinutes).toMinutesPart() > 0 ? 1 : 0);
         return hours * price;
+    }
+
+    private double calculateDailyPrice(double price, LocalDateTime entry, LocalDateTime exit) {
+        var totalMinutes = Duration.between(entry, exit).toMinutes();
+        var days = Duration.ofMinutes(totalMinutes).toDaysPart() +
+                (Duration.ofMinutes(totalMinutes).toHoursPart() > 0 || Duration.ofMinutes(totalMinutes).toMinutesPart() > 0 ? 1 : 0);
+        return days * price;
     }
 }

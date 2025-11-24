@@ -1,8 +1,14 @@
 package br.com.estapar.parking.parking.application;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.time.ZoneOffset;
+
 import org.springframework.stereotype.Service;
 
 import br.com.estapar.parking.core.exceptions.ValidationException;
+import br.com.estapar.parking.parking.api.dto.RevenueRequestDTO;
+import br.com.estapar.parking.parking.api.dto.RevenueResponseDTO;
 import br.com.estapar.parking.parking.api.dto.event.ParkingEventDTO;
 import br.com.estapar.parking.parking.api.mapper.ParkingMapper;
 import br.com.estapar.parking.parking.domain.Parking;
@@ -22,7 +28,7 @@ public class ParkingService implements ParkingFacade {
 
     private final SpotFacade spotFacade;
     private final SectorFacade sectorFacade;
-    private final PricingService pricingService;
+    private final PricingFacade pricingFacade;
     private final ParkingRepository parkingRepository;
 
     @Override
@@ -32,6 +38,22 @@ public class ParkingService implements ParkingFacade {
             case PARKED -> eventParked(event);
             case EXIT -> eventExit(event);
         }
+    }
+
+    @Override
+    public RevenueResponseDTO calculateRevenueBySector(RevenueRequestDTO request) {
+        log.info("Revenue request for sector={} date={}", request.sector(), request.date());
+        var sectorName = request.sector();
+        var date = request.date();
+        var start = date.atStartOfDay();
+        var end = start.plusDays(1);
+        var result = parkingRepository.sumTotalPriceBySectorAndExitTimeBetween(sectorName, start, end);
+        if (result == null) {
+            result = 0.0;
+        }
+        var amount = BigDecimal.valueOf(result).setScale(2, RoundingMode.HALF_UP);
+        var timestamp = start.plusHours(12).atOffset(ZoneOffset.UTC).toString();
+        return ParkingMapper.toDto(amount, "BRL", timestamp);
     }
 
     @Transactional
@@ -51,7 +73,7 @@ public class ParkingService implements ParkingFacade {
         isSectorOpen(sector);
         isSectorFull(sector);
         spotFacade.markOccupied(spot);
-        var dynamicFactor = pricingService.dynamicFactor(sector);
+        var dynamicFactor = pricingFacade.dynamicFactor(sector);
         ParkingMapper.toEntity(parking, event, sector, spot, dynamicFactor);
         parkingRepository.save(parking);
         log.info("Vehicle with license plate {} parked at spot ID {} in sector '{}'.", event.licensePlate(), spot.getSpotId(), sector.getSectorName());
@@ -60,8 +82,9 @@ public class ParkingService implements ParkingFacade {
     @Transactional
     private void eventExit(ParkingEventDTO event) {
         var parking = findActiveParking(event.licensePlate());
+        verifyParkingDateTime(parking, event);
         ParkingMapper.toEntity(parking, event);
-        var totalPrice = pricingService.calculatePrice(parking);
+        var totalPrice = pricingFacade.calculatePrice(parking);
         parking.setTotalPrice(totalPrice);
         parkingRepository.save(parking);
         spotFacade.markAvailable(parking.getSpot());
@@ -101,6 +124,13 @@ public class ParkingService implements ParkingFacade {
         if (!sectorFacade.isSectorOpen(sector)) {
             log.error("Sector '{}' is currently closed. Cannot park now.", sector.getSectorName());
             throw new ValidationException("Sector is closed. Cannot park now.");
+        }
+    }
+
+    private void verifyParkingDateTime(Parking parking, ParkingEventDTO event) {
+        if (event.exitTime().isBefore(parking.getEntryTime())) {
+            log.error("Exit time {} is before entry time {} for license plate {}.", event.exitTime(), parking.getEntryTime(), event.licensePlate());
+            throw new ValidationException("Exit time cannot be before entry time.");
         }
     }
 }

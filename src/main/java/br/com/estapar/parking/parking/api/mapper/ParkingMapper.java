@@ -1,5 +1,8 @@
 package br.com.estapar.parking.parking.api.mapper;
 
+import java.math.BigDecimal;
+
+import br.com.estapar.parking.parking.api.dto.RevenueResponseDTO;
 import br.com.estapar.parking.parking.api.dto.event.ParkingEventDTO;
 import br.com.estapar.parking.parking.domain.Parking;
 import br.com.estapar.parking.sector.domain.Sector;
@@ -28,5 +31,9 @@ public class ParkingMapper {
     public static void toEntity(Parking parking, ParkingEventDTO parkingDto) {
         parking.setExitTime(parkingDto.exitTime());
         parking.setEventType(parkingDto.eventType());
+    }
+
+    public static RevenueResponseDTO toDto(BigDecimal amount, String currency, String timestamp) {
+        return new RevenueResponseDTO(amount, currency, timestamp);
     }
 }

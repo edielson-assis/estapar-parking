@@ -14,6 +14,7 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import java.time.LocalTime;
+import java.time.ZoneId;
 import java.time.format.DateTimeParseException;
 
 @Log4j2
@@ -73,25 +74,26 @@ public class SectorService implements SectorFacade {
         var open = existing.getOpenHour();
         var close = existing.getCloseHour();
         if (open == null || close == null) {
-            // if no hours configured, assume always open
-            return true;
+            log.warn("Sector '{}' has no operating hours configured — blocking parking attempt.", sector.getSectorName());
+            return false;
         }
         try {
             LocalTime openT = LocalTime.parse(open);
             LocalTime closeT = LocalTime.parse(close);
-            LocalTime now = LocalTime.now();
+            LocalTime now = LocalTime.now(ZoneId.of("America/Sao_Paulo"));
             if (openT.equals(closeT)) {
-                return true; // open 24h
+                log.warn("Sector '{}' has invalid hours (open == close). Blocking parking attempt.", sector.getSectorName());
+                return false;
             }
-            if (openT.isBefore(closeT) || openT.equals(closeT)) {
+            // Horário normal (abre e fecha no mesmo dia)
+            if (openT.isBefore(closeT)) {
                 return !now.isBefore(openT) && !now.isAfter(closeT);
-            } else {
-                // overnight period (e.g., open 20:00 close 06:00)
-                return !now.isBefore(openT) || !now.isAfter(closeT);
             }
+            // Horário que passa da meia-noite
+            return !now.isBefore(openT) || !now.isAfter(closeT);
         } catch (DateTimeParseException e) {
-            log.warn("Invalid open/close hour format for sector '{}': {} - {}", sector.getSectorName(), open, close);
-            return true;
+            log.warn("Invalid hour format for sector '{}': {} - {}", sector.getSectorName(), open, close);
+            return false;
         }
     }
 }
