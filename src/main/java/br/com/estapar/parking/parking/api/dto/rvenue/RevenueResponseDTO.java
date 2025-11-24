@@ -1,4 +1,4 @@
-package br.com.estapar.parking.parking.api.dto;
+package br.com.estapar.parking.parking.api.dto.rvenue;
 
 import java.math.BigDecimal;
 

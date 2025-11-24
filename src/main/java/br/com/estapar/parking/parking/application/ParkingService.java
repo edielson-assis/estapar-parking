@@ -7,9 +7,9 @@ import java.time.ZoneOffset;
 import org.springframework.stereotype.Service;
 
 import br.com.estapar.parking.core.exceptions.ValidationException;
-import br.com.estapar.parking.parking.api.dto.RevenueRequestDTO;
-import br.com.estapar.parking.parking.api.dto.RevenueResponseDTO;
 import br.com.estapar.parking.parking.api.dto.event.ParkingEventDTO;
+import br.com.estapar.parking.parking.api.dto.rvenue.RevenueRequestDTO;
+import br.com.estapar.parking.parking.api.dto.rvenue.RevenueResponseDTO;
 import br.com.estapar.parking.parking.api.mapper.ParkingMapper;
 import br.com.estapar.parking.parking.domain.Parking;
 import br.com.estapar.parking.parking.domain.enums.EventType;

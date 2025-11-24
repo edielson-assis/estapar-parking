@@ -25,6 +25,8 @@ public class SectorService implements SectorFacade {
     private final SectorRepository repository;
     private final SpotFacade spotFacade;
 
+    private static final String ZONE_ID = "America/Sao_Paulo";
+
     @Transactional
     @Override
     public Sector createSector(SectorDTO sectorDTO) {
@@ -80,7 +82,7 @@ public class SectorService implements SectorFacade {
         try {
             LocalTime openT = LocalTime.parse(open);
             LocalTime closeT = LocalTime.parse(close);
-            LocalTime now = LocalTime.now(ZoneId.of("America/Sao_Paulo"));
+            LocalTime now = LocalTime.now(ZoneId.of(ZONE_ID));
             if (openT.equals(closeT)) {
                 log.warn("Sector '{}' has invalid hours (open == close). Blocking parking attempt.", sector.getSectorName());
                 return false;

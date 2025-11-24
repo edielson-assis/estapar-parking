@@ -2,8 +2,8 @@ package br.com.estapar.parking.parking.api.mapper;
 
 import java.math.BigDecimal;
 
-import br.com.estapar.parking.parking.api.dto.RevenueResponseDTO;
 import br.com.estapar.parking.parking.api.dto.event.ParkingEventDTO;
+import br.com.estapar.parking.parking.api.dto.rvenue.RevenueResponseDTO;
 import br.com.estapar.parking.parking.domain.Parking;
 import br.com.estapar.parking.sector.domain.Sector;
 import br.com.estapar.parking.spot.domain.Spot;
