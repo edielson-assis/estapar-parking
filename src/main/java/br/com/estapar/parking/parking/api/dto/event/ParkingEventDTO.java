@@ -4,8 +4,6 @@ import java.time.LocalDateTime;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import br.com.estapar.parking.parking.domain.enums.EventType;
-
 public record ParkingEventDTO(
         
     @JsonProperty("license_plate")
@@ -21,5 +19,5 @@ public record ParkingEventDTO(
     LocalDateTime exitTime,
     
     @JsonProperty("event_type")
-    EventType eventType
+    String eventType
 ) {}

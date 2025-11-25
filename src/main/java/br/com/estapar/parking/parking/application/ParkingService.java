@@ -33,10 +33,11 @@ public class ParkingService implements ParkingFacade {
 
     @Override
     public void processEvent(ParkingEventDTO event) {
-        switch (event.eventType()) {
-            case ENTRY -> eventEntry(event);
-            case PARKED -> eventParked(event);
-            case EXIT -> eventExit(event);
+        validateEvent(event);
+        switch (toUpperCase(event.eventType())) {
+            case "ENTRY" -> eventEntry(event);
+            case "PARKED" -> eventParked(event);
+            case "EXIT" -> eventExit(event);
         }
     }
 
@@ -113,8 +114,8 @@ public class ParkingService implements ParkingFacade {
         }
     }
 
-    private void isActiveVehicle(Parking parking, EventType eventType) {
-        if (parking.getEventType() == eventType) {
+    private void isActiveVehicle(Parking parking, String eventType) {
+        if (parking.getEventType() == EventType.valueOf(toUpperCase(eventType))) {
             log.error("Vehicle with license plate {} is already parked.", parking.getLicensePlate());
             throw new ValidationException("Vehicle is already parked.");
         }
@@ -132,5 +133,59 @@ public class ParkingService implements ParkingFacade {
             log.error("Exit time {} is before entry time {} for license plate {}.", event.exitTime(), parking.getEntryTime(), event.licensePlate());
             throw new ValidationException("Exit time cannot be before entry time.");
         }
+    }
+
+    private void validateEvent(ParkingEventDTO event) {
+        var eventType = toUpperCase(event.eventType());
+        log.info("Validating incoming event: {}", eventType);
+        if (isBlank(eventType)) {
+            log.error("Event type is null.");
+            throw new IllegalArgumentException("Event type is required.");
+        }
+        switch (eventType) {
+            case "ENTRY" -> validateEntryEvent(event);
+            case "PARKED" -> validateParkedEvent(event);
+            case "EXIT" -> validateExitEvent(event);
+            default -> throw new IllegalArgumentException("Unknown event type: " + event.eventType());
+        }
+    }
+
+    private void validateEntryEvent(ParkingEventDTO event) {
+        validateLicensePlate(event.licensePlate());
+        if (event.entryTime() == null) {
+            log.error("Entry time is null for license plate {}.", event.licensePlate());
+            throw new IllegalArgumentException("Entry time is required for ENTRY event.");
+        }
+    }
+
+    private void validateParkedEvent(ParkingEventDTO event) {
+        validateLicensePlate(event.licensePlate());
+        if (event.lat() == null || event.lng() == null) {
+            log.error("Coordinates are null for license plate {}.", event.licensePlate());
+            throw new IllegalArgumentException("Coordinates are required for PARKED event.");
+        }
+    }
+
+    private void validateExitEvent(ParkingEventDTO event) {
+        validateLicensePlate(event.licensePlate());
+        if (event.exitTime() == null) {
+            log.error("Exit time is null for license plate {}.", event.licensePlate());
+            throw new IllegalArgumentException("Exit time is required for EXIT event.");
+        }
+    }
+
+    private boolean isBlank(String value) {
+        return value == null || value.isBlank();
+    }
+
+    private void validateLicensePlate(String licensePlate) {
+        if (isBlank(licensePlate)) {
+            log.error("License plate is blank.");
+            throw new IllegalArgumentException("License plate is required.");
+        }
+    }
+
+    private String toUpperCase(String value) {
+        return value != null ? value.toUpperCase() : null;
     }
 }
