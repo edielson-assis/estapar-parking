@@ -14,6 +14,8 @@ public interface SpotFacade {
 
     long countOccupiedSpotsBySector(Sector sector);
 
+    long countAvailableSpots();
+
     Spot findByCoordinates(Double lat, Double lng);
 
     void markOccupied(Spot spot);

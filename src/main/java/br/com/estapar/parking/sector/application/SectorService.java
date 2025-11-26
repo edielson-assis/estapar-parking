@@ -64,9 +64,10 @@ public class SectorService implements SectorFacade {
     }
 
     @Override
-    public boolean isSectorFull(Sector sector) {
-        log.info("Checking if sector '{}' is full.", sector.getSectorName());
-        return getOccupancyRate(sector) >= 1.0;
+    public boolean isSectorFull() {
+        log.info("Checking if parking is full.");
+        var available = spotFacade.countAvailableSpots();
+        return available == 0;
     }
 
     @Override

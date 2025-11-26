@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.client.ResourceAccessException;
 
 import br.com.estapar.parking.core.exceptions.ObjectNotFoundException;
 import br.com.estapar.parking.core.exceptions.ValidationException;
@@ -40,6 +41,13 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<ExceptionResponse> badRequest(IllegalArgumentException exception, HttpServletRequest request) {
+        String error = "Bad request";
+        HttpStatus status = HttpStatus.BAD_REQUEST;
+        return ResponseEntity.status(status).body(errors(status, error, exception, request));
+    }
+
+    @ExceptionHandler(ResourceAccessException.class)
+    public ResponseEntity<ExceptionResponse> badRequest(ResourceAccessException exception, HttpServletRequest request) {
         String error = "Bad request";
         HttpStatus status = HttpStatus.BAD_REQUEST;
         return ResponseEntity.status(status).body(errors(status, error, exception, request));

@@ -24,6 +24,11 @@ services:
       - 3308
     volumes:
       - mysql-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-padmin123"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
     networks:
       - parking-network
   parking:
@@ -40,7 +45,8 @@ services:
       - 3003:3003
     command: mvn spring-boot:run
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     networks:
       - parking-network
 networks:

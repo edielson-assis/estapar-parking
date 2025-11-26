@@ -16,5 +16,7 @@ public interface SpotRepository extends JpaRepository<Spot, Long> {
 
     long countBySectorAndIsOccupiedTrue(Sector sector);
 
+    long countByIsOccupiedFalse();
+
     Optional<Spot> findByLatAndLng(Double lat, Double lng);
 }

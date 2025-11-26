@@ -39,6 +39,12 @@ public class SpotService implements SpotFacade {
     }
 
     @Override
+    public long countAvailableSpots() {
+        log.debug("Counting available spots.");
+        return repository.countByIsOccupiedFalse();
+    }
+
+    @Override
     public Spot findByCoordinates(Double lat, Double lng) {
         log.debug("Searching for spot at coordinates (lat: {}, lng: {}).", lat, lng);
         return repository.findByLatAndLng(lat, lng).orElseThrow(() -> { 

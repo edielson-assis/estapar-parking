@@ -15,7 +15,7 @@ public interface SectorFacade {
 
     double getOccupancyRate(Sector sector);
 
-    boolean isSectorFull(Sector sector);
+    boolean isSectorFull();
 
     boolean isSectorOpen(Sector sector);
 }

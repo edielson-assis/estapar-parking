@@ -32,7 +32,7 @@ public class ParkingService implements ParkingFacade {
     private final ParkingRepository parkingRepository;
 
     @Override
-    public void processEvent(ParkingEventDTO event) {
+    public synchronized void processEvent(ParkingEventDTO event) {
         validateEvent(event);
         switch (toUpperCase(event.eventType())) {
             case "ENTRY" -> eventEntry(event);
@@ -60,6 +60,7 @@ public class ParkingService implements ParkingFacade {
     @Transactional
     private void eventEntry(ParkingEventDTO event) {
         verifyVehicleNotAlreadyEntered(event.licensePlate());
+        hasAvailableSpot();
         var parking = ParkingMapper.toEntity(event);
         parkingRepository.save(parking);
         log.info("Registering entry event for license plate: {}", event.licensePlate());
@@ -72,7 +73,6 @@ public class ParkingService implements ParkingFacade {
         var spot = spotFacade.findByCoordinates(event.lat(), event.lng());
         var sector = spot.getSector();
         isSectorOpen(sector);
-        isSectorFull(sector);
         spotFacade.markOccupied(spot);
         var dynamicFactor = pricingFacade.dynamicFactor(sector);
         ParkingMapper.toEntity(parking, event, sector, spot, dynamicFactor);
@@ -107,10 +107,10 @@ public class ParkingService implements ParkingFacade {
         });
     }
 
-    private void isSectorFull(Sector sector) {
-        if (sectorFacade.isSectorFull(sector)) {
-            log.error("Sector '{}' is full. Cannot park now.", sector.getSectorName());
-            throw new ValidationException("Sector is full. Cannot park now.");
+    private void hasAvailableSpot() {
+        if (sectorFacade.isSectorFull()) {
+            log.error("Parking is full. Cannot park now.");
+            throw new ValidationException("Parking is full. Cannot park now.");
         }
     }
 
@@ -139,7 +139,7 @@ public class ParkingService implements ParkingFacade {
         var eventType = toUpperCase(event.eventType());
         log.info("Validating incoming event: {}", eventType);
         if (isBlank(eventType)) {
-            log.error("Event type is null.");
+            log.error("Event type is required.");
             throw new IllegalArgumentException("Event type is required.");
         }
         switch (eventType) {
