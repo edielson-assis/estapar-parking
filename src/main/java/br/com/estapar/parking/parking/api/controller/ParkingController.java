@@ -1,11 +1,11 @@
 package br.com.estapar.parking.parking.api.controller;
 
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import br.com.estapar.parking.parking.api.doc.ParkingControllerDoc;
 import br.com.estapar.parking.parking.api.dto.event.ParkingEventDTO;
 import br.com.estapar.parking.parking.api.dto.rvenue.RevenueRequestDTO;
 import br.com.estapar.parking.parking.api.dto.rvenue.RevenueResponseDTO;
@@ -15,7 +15,7 @@ import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
 @RestController
-public class ParkingController {
+public class ParkingController implements ParkingControllerDoc {
     
     private final ParkingFacade parkingFacade;
 
@@ -25,7 +25,7 @@ public class ParkingController {
         return ResponseEntity.ok().build();
     }
 
-    @GetMapping("/revenue")
+    @PostMapping("/revenue")
     public ResponseEntity<RevenueResponseDTO> revenueBySector(@RequestBody @Valid RevenueRequestDTO request) {
         var response = parkingFacade.calculateRevenueBySector(request);
         return ResponseEntity.ok(response);

@@ -22,3 +22,9 @@ spring:
 # Garage settings
 garage:
   url: ${GARAGE_URL:http://localhost:3000/garage}
+
+# SpringDoc settings
+springdoc:
+  server:
+    url: ${SWAGGER_SERVER_URL:http://localhost:${server.port}}
+    description: ${SERVER_DESCRIPTION:Development server}
